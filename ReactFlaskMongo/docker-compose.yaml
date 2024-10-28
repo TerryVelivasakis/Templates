@@ -1,0 +1,47 @@
+services:
+
+  mongo:
+    image: mongo:latest
+    container_name: mongodb
+    env_file:
+      - ./env/mongo.env
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - app-network
+
+  react:
+    build:
+      context: ./dockerfiles
+      dockerfile: react.dockerfile
+    ports:
+      - 3000:3000
+    env_file:
+      - ./env/react.env
+    volumes:
+      - ./react:/app
+      
+
+  flask:
+    build:
+      context: ./dockerfiles
+      dockerfile: flask.dockerfile
+    ports:
+      - 5000:5000
+    volumes:
+      - ./flask:/app
+    env_file:
+      - ./env/flask.env
+    depends_on:
+      - directus
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - 8080:80
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - react
